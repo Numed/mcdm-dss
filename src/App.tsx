@@ -7,8 +7,9 @@ import { useApplyTheme } from '@/app/theme'
 import { useAnalysis } from '@/app/useAnalysis'
 import { useUndoShortcuts } from '@/app/useUndoShortcuts'
 import { CompareTab } from '@/features/CompareTab'
-import { DataTab } from '@/features/DataTab'
 import { ParamsTab } from '@/features/ParamsTab'
+import { AlternativesPage } from '@/pages/alternatives/AlternativesPage'
+import { GoalsPage } from '@/pages/goals/GoalsPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 import { ResultsPage } from '@/pages/results/ResultsPage'
 import { useProjectStore } from '@/store/projectStore'
@@ -22,9 +23,10 @@ function Page(props: PageProps) {
   const project = useProjectStore((state) => state.project)
   const analysis = useAnalysis()
   switch (props.route) {
-    case 'goals':
     case 'alternatives':
-      return <DataTab />
+      return <AlternativesPage />
+    case 'goals':
+      return <GoalsPage />
     case 'params':
       return <ParamsTab />
     case 'results':
