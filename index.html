@@ -10,8 +10,9 @@
       try {
         var stored = JSON.parse(localStorage.getItem('mcdm-goal-groups-ui') || '{}')
         var theme = (stored.state && stored.state.theme) || 'system'
-        var dark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+        var dark = theme === 'dark' || theme === 'black' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
         if (dark && location.hash !== '#report') document.documentElement.classList.add('dark')
+        if (theme === 'black' && location.hash !== '#report') document.documentElement.classList.add('black')
       } catch (error) {}
     </script>
   </head>

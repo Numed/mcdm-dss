@@ -1,4 +1,4 @@
-import { Download, FileJson, FileSpreadsheet, FileText, FolderOpen, Monitor, Moon, Sun, Upload } from 'lucide-react'
+import { Circle, Download, FileJson, FileSpreadsheet, FileText, FolderOpen, Monitor, Moon, Sun, Upload } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import {
@@ -39,6 +39,7 @@ type ThemeOption = {
   value: ThemePreference
   label: string
   icon: typeof Sun
+  iconClassName?: string
 }
 
 type CollapsibleTooltipProps = {
@@ -51,6 +52,7 @@ const THEME_OPTIONS: ThemeOption[] = [
   { value: 'light', label: 'Світла тема', icon: Sun },
   { value: 'system', label: 'Як у системі', icon: Monitor },
   { value: 'dark', label: 'Темна тема', icon: Moon },
+  { value: 'black', label: 'Чорна тема', icon: Circle, iconClassName: 'fill-current' },
 ]
 
 function CollapsibleTooltip(props: CollapsibleTooltipProps) {
@@ -246,7 +248,7 @@ export function AppSidebar(props: AppSidebarProps) {
                     active && 'bg-accent text-foreground shadow-xs',
                   )}
                 >
-                  <Icon className="size-3.5" aria-hidden />
+                  <Icon className={cn('size-3.5', option.iconClassName)} aria-hidden />
                 </button>
               </CollapsibleTooltip>
             )

@@ -3,7 +3,7 @@ import { createJSONStorage, persist } from 'zustand/middleware'
 import type { TemplateId } from '@/app/templates'
 import { safeStorage } from './storage'
 
-export type ThemePreference = 'light' | 'dark' | 'system'
+export type ThemePreference = 'light' | 'dark' | 'black' | 'system'
 
 export type GoalTreeSelection =
   | { kind: 'goal'; goalId: string }

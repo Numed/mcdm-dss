@@ -5,7 +5,7 @@ function Toaster() {
   const theme = useResolvedTheme()
   return (
     <Sonner
-      theme={theme}
+      theme={theme === 'light' ? 'light' : 'dark'}
       position="bottom-right"
       closeButton
       toastOptions={{

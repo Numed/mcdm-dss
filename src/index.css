@@ -41,6 +41,11 @@
   --corr-mid: #a3a29d;
   --corr-pos: #138a3e;
 
+  --goal-1: #2a78d6;
+  --goal-2: #86b6ef;
+  --goal-3: #184f95;
+  --goal-4: #b7d3f6;
+
   --alt-1: #2a78d6;
   --alt-2: #eb6834;
   --alt-3: #1baf7a;
@@ -89,6 +94,11 @@
   --corr-mid: #6e6d68;
   --corr-pos: #2fb35a;
 
+  --goal-1: #3987e5;
+  --goal-2: #1c5cab;
+  --goal-3: #86b6ef;
+  --goal-4: #104281;
+
   --alt-1: #3987e5;
   --alt-2: #d95926;
   --alt-3: #199e70;
@@ -97,6 +107,27 @@
   --alt-6: #22a022;
   --alt-7: #9085e9;
   --alt-8: #e66767;
+}
+
+.dark.black {
+  --background: #000000;
+  --foreground: oklch(0.96 0 0);
+  --card: #0a0a0a;
+  --card-foreground: oklch(0.96 0 0);
+  --popover: #111111;
+  --popover-foreground: oklch(0.96 0 0);
+  --secondary: #161616;
+  --muted: #141414;
+  --muted-foreground: oklch(0.7 0 0);
+  --accent: #1c1c1c;
+  --accent-foreground: oklch(0.97 0 0);
+  --border: #222222;
+  --input: #2a2a2a;
+  --sidebar: #000000;
+  --sidebar-border: #1c1c1c;
+  --sidebar-accent: #161616;
+  --grid: #1a1a1a;
+  --corr-mid: #5e5e5e;
 }
 
 @theme inline {
@@ -148,6 +179,10 @@
   ::selection {
     background: color-mix(in oklch, var(--primary) 25%, transparent);
   }
+}
+
+@utility num-tex {
+  font-size: 1.02em;
 }
 
 @utility num {
