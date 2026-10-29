@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useResolvedCssColors } from '@/app/theme'
 import { useElementSize } from '@/app/useElementSize'
+import { type InkPair, readablePair } from '@/lib/contrast'
 import { cn } from '@/lib/utils'
 
 export type BumpColumn = {
@@ -61,6 +63,11 @@ export function BumpChart(props: BumpChartProps) {
   const { columns, series, highlightColumn, ariaLabel } = props
   const { ref, size } = useElementSize<HTMLDivElement>()
   const [hovered, setHovered] = useState<string | null>(null)
+  const resolvedColors = useResolvedCssColors(series.map((item) => item.color))
+  const nodeColors = useMemo(
+    () => new Map<string, InkPair>(series.map((item, index) => [item.id, readablePair(resolvedColors[index] ?? item.color)])),
+    [series, resolvedColors],
+  )
   const maxRank = Math.max(series.length, ...series.flatMap((item) => item.ranks.map((rank) => rank ?? 0)), 1)
   const height = TOP + BOTTOM + (maxRank - 1) * ROW + 24
   const plotLeft = SIDE
@@ -141,6 +148,7 @@ export function BumpChart(props: BumpChartProps) {
           {series.map((item) => {
             const nodes = nodesBySeries.get(item.id) ?? []
             const active = hovered === item.id
+            const node = nodeColors.get(item.id)
             return (
               <g
                 key={item.id}
@@ -151,13 +159,21 @@ export function BumpChart(props: BumpChartProps) {
               >
                 <path d={nodePath(nodes)} fill="none" stroke="var(--card)" strokeWidth={active ? 7 : 6} strokeLinecap="round" />
                 <path d={nodePath(nodes)} fill="none" stroke={item.color} strokeWidth={active ? 3 : 2.25} strokeLinecap="round" />
-                {nodes.map((node, columnIndex) => {
-                  if (!node) return null
+                {nodes.map((point, columnIndex) => {
+                  if (!point) return null
                   return (
                     <g key={columnIndex}>
-                      <circle cx={node.x} cy={node.y} r={10} fill={item.color} stroke="var(--card)" strokeWidth={2} />
-                      <text x={node.x} y={node.y + 3.5} textAnchor="middle" fontSize={10} fontWeight={700} fill="#fff" className="num">
-                        {node.rank}
+                      <circle cx={point.x} cy={point.y} r={10} fill={node?.fill ?? item.color} stroke="var(--card)" strokeWidth={2} />
+                      <text
+                        x={point.x}
+                        y={point.y + 3.5}
+                        textAnchor="middle"
+                        fontSize={10}
+                        fontWeight={700}
+                        fill={node?.ink ?? '#ffffff'}
+                        className="num"
+                      >
+                        {point.rank}
                       </text>
                     </g>
                   )
