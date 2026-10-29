@@ -6,6 +6,7 @@ import type { Alternative, Criterion, CriteriaGroup, Goal, InputMode, Project } 
 import { bankDemo, createId } from '@/core/presets'
 import type { SecurityLevel } from '@/core/security'
 import { isProject } from '@/core/validate'
+import { parseLocaleNumber } from '@/lib/parse'
 import { safeStorage } from './storage'
 
 export const ALTERNATIVE_COLOR_COUNT = 8
@@ -13,6 +14,13 @@ const HISTORY_LIMIT = 100
 const COALESCE_MS = 1200
 
 type CriterionPatch = Partial<Pick<Criterion, 'name' | 'direction'>>
+
+export type PasteSummary = {
+  values: number
+  names: number
+  created: number
+  skipped: number
+}
 
 export type CellPatch = {
   criterionId: string
@@ -45,6 +53,8 @@ type ProjectActions = {
   setCriterionValue: (goalId: string, groupId: string, criterionId: string, alternativeId: string, value: number) => void
   setCriterionValues: (goalId: string, groupId: string, cells: CellPatch[]) => void
   removeCriterion: (goalId: string, groupId: string, criterionId: string) => void
+  pasteIntoGroup: (goalId: string, groupId: string, startRow: number, startCol: number, rows: string[][]) => PasteSummary
+  pasteDirectScores: (startGoal: number, startAlternative: number, rows: string[][]) => PasteSummary
   undo: () => void
   redo: () => void
 }
@@ -348,6 +358,76 @@ export const useProjectStore = create<ProjectState>()(
             })),
           ),
         ),
+      pasteIntoGroup: (goalId, groupId, startRow, startCol, rows) => {
+        const summary: PasteSummary = { values: 0, names: 0, created: 0, skipped: 0 }
+        set((state) => {
+          const project = state.project
+          const alternatives = project.alternatives
+          const next = mapGroup(project, goalId, groupId, (group) => {
+            const criteria = [...group.criteria]
+            rows.forEach((cells, rowOffset) => {
+              const rowIndex = startRow + rowOffset
+              let criterion = criteria[rowIndex]
+              if (!criterion) {
+                criterion = { ...newCriterion(project, rowIndex + 1), name: `Критерій ${rowIndex + 1}` }
+                summary.created += 1
+              }
+              const values = { ...criterion.values }
+              let name = criterion.name
+              cells.forEach((raw, cellOffset) => {
+                const column = startCol + cellOffset
+                if (column === 0) {
+                  if (raw.trim() !== '') {
+                    name = raw.trim()
+                    summary.names += 1
+                  }
+                  return
+                }
+                const alternative = alternatives[column - 1]
+                if (!alternative) return
+                const value = parseLocaleNumber(raw)
+                if (value === null) {
+                  summary.skipped += 1
+                  return
+                }
+                values[alternative.id] = value
+                summary.values += 1
+              })
+              criteria[rowIndex] = { ...criterion, name, values }
+            })
+            return { ...group, criteria }
+          })
+          resetCursor()
+          return commit(state, next)
+        })
+        return summary
+      },
+      pasteDirectScores: (startGoal, startAlternative, rows) => {
+        const summary: PasteSummary = { values: 0, names: 0, created: 0, skipped: 0 }
+        set((state) => {
+          const project = state.project
+          const goals = project.goals.map((goal, goalIndex) => {
+            const cells = rows[goalIndex - startGoal]
+            if (!cells) return goal
+            const directScores = { ...goal.directScores }
+            cells.forEach((raw, offset) => {
+              const alternative = project.alternatives[startAlternative + offset]
+              if (!alternative) return
+              const value = parseLocaleNumber(raw)
+              if (value === null) {
+                summary.skipped += 1
+                return
+              }
+              directScores[alternative.id] = Math.min(Math.max(value, 0), 1)
+              summary.values += 1
+            })
+            return { ...goal, directScores }
+          })
+          resetCursor()
+          return commit(state, { ...project, goals })
+        })
+        return summary
+      },
       undo: () =>
         set((state) => {
           const previous = state.past[state.past.length - 1]
