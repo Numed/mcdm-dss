@@ -2,6 +2,7 @@ import {
   Activity,
   BookOpen,
   FileText,
+  MonitorPlay,
   GitCompareArrows,
   LayoutDashboard,
   ListTree,
@@ -45,6 +46,7 @@ export const NAV_SECTIONS: NavSection[] = [
     title: 'Довідка',
     items: [
       { id: 'method', title: 'Про метод', icon: BookOpen },
+      { id: 'present', title: 'Презентація', icon: MonitorPlay },
       { id: 'report', title: 'Звіт для друку', icon: FileText },
     ],
   },

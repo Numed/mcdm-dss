@@ -10,6 +10,7 @@ export type RouteId =
   | 'compare'
   | 'method'
   | 'report'
+  | 'present'
 
 export type RouteMeta = {
   id: RouteId
@@ -27,6 +28,7 @@ export const ROUTES: RouteMeta[] = [
   { id: 'compare', title: 'Порівняння методів', section: 'Аналіз' },
   { id: 'method', title: 'Про метод', section: 'Довідка' },
   { id: 'report', title: 'Звіт', section: 'Експорт' },
+  { id: 'present', title: 'Презентація', section: 'Довідка' },
 ]
 
 const DEFAULT_ROUTE: RouteId = 'overview'
@@ -36,8 +38,13 @@ function isRouteId(value: string): value is RouteId {
 }
 
 function readRoute(): RouteId {
-  const hash = window.location.hash.replace(/^#\/?/, '')
+  const [hash = ''] = window.location.hash.replace(/^#\/?/, '').split('/')
   return isRouteId(hash) ? hash : DEFAULT_ROUTE
+}
+
+export function readRouteParam(): string | null {
+  const [, param] = window.location.hash.replace(/^#\/?/, '').split('/')
+  return param ?? null
 }
 
 function subscribe(callback: () => void): () => void {
