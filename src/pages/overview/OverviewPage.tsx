@@ -2,7 +2,7 @@ import { ArrowRight, CircleAlert, CircleCheck, CircleDashed, TriangleAlert } fro
 import type { LucideIcon } from 'lucide-react'
 import { type RouteId, routeHref } from '@/app/routes'
 import { TEMPLATES } from '@/app/templates'
-import { useAnalysis, useIssues } from '@/app/useAnalysis'
+import { useAnalysis, useIssues, useRobustness } from '@/app/useAnalysis'
 import { useResultMeta } from '@/app/useResultMeta'
 import { type Issue, criteriaCount } from '@/app/validation'
 import { AltDot } from '@/components/app/AltDot'
@@ -13,7 +13,7 @@ import { Card } from '@/components/ui/card'
 import type { AnalysisResult } from '@/core/analysis'
 import type { Project } from '@/core/model'
 import { correlationColor } from '@/lib/colors'
-import { cn, formatFixed, formatVector, pluralUk } from '@/lib/utils'
+import { cn, formatFixed, formatPercent, formatVector, pluralUk } from '@/lib/utils'
 import { useProjectStore } from '@/store/projectStore'
 import { useUiStore } from '@/store/uiStore'
 
@@ -139,6 +139,7 @@ export function OverviewPage() {
   const stages = buildStages(project, analysis, issues)
   const best = analysis.best
   const topsis = analysis.comparison?.methods[1]
+  const robustness = useRobustness(0.1)
 
   return (
     <div className="flex flex-col gap-8">
@@ -166,7 +167,7 @@ export function OverviewPage() {
         </div>
       </section>
 
-      <Card className="grid grid-cols-1 divide-y sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x">
+      <Card className="grid grid-cols-1 divide-y sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-5 lg:divide-x">
         <Stat
           label="Найкраща альтернатива"
           value={
@@ -199,6 +200,15 @@ export function OverviewPage() {
           }
           hint={topsis ? 'ρ Спірмена між ранжуваннями' : 'лише для матриць критеріїв'}
           className="sm:border-l lg:border-l-0"
+        />
+        <Stat
+          label="Стійкість рішення"
+          value={best ? formatPercent(robustness.baselineWinRate) : '—'}
+          hint={
+            <a href={routeHref('sensitivity')} className="hover:text-foreground hover:underline">
+              переможець за похибки даних ±10 %
+            </a>
+          }
         />
       </Card>
 

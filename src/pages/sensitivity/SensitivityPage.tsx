@@ -13,6 +13,7 @@ import { orderSensitivity, thresholdSensitivity, winnerGrid, type WinnerCell } f
 import { securityColorVar } from '@/lib/colors'
 import { cn, formatFixed, formatNumber, pluralUk } from '@/lib/utils'
 import { useProjectStore } from '@/store/projectStore'
+import { RobustnessCard } from './RobustnessCard'
 
 type HeatmapProps = {
   project: Project
@@ -140,8 +141,10 @@ export function SensitivityPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Аналіз чутливості"
-        description="Наскільки стійке рішення до зміни параметрів методу: порядку середнього t, термів вектора задоволення і порогу безпеки."
+        description="Наскільки стійке рішення до похибок у даних і до зміни параметрів методу: порядку середнього t, термів вектора задоволення і порогу безпеки."
       />
+
+      <RobustnessCard nameById={nameById} colorById={meta.colorById} />
 
       <Card>
         <CardHeader>

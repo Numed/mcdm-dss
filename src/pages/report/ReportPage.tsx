@@ -3,7 +3,7 @@ import { type ReactNode, useState } from 'react'
 import { copyTableForWord, exportResultsXlsx } from '@/app/exportResults'
 import { type Cell, type DataTable, cellText, comparisonTable, isNumericCell, rankingTable, summaryTable } from '@/app/resultTables'
 import { routeHref } from '@/app/routes'
-import { useAnalysis } from '@/app/useAnalysis'
+import { robustnessCached, useAnalysis } from '@/app/useAnalysis'
 import { useResultMeta } from '@/app/useResultMeta'
 import { GoalSpaceChart } from '@/components/charts/GoalSpaceChart'
 import { RadarChart } from '@/components/charts/RadarChart'
@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button'
 import type { AnalysisResult } from '@/core/analysis'
 import type { Project } from '@/core/model'
 import { orderSensitivity } from '@/core/sensitivity'
-import { formatFixed, formatNumber, stripGoalPrefix } from '@/lib/utils'
+import { formatFixed, formatNumber, formatPercent, stripGoalPrefix } from '@/lib/utils'
 import { useProjectStore } from '@/store/projectStore'
 
 type ReportTableProps = {
@@ -162,6 +162,23 @@ function sensitivityTable(project: Project): DataTable | null {
   }
 }
 
+function robustnessTable(project: Project): DataTable {
+  const result = robustnessCached(project, 0.1)
+  const nameById = new Map(project.alternatives.map((alt) => [alt.id, alt.name]))
+  return {
+    title: `Розподіл місць за похибки даних ±10 % (метод Монте-Карло, ${result.runs} сценаріїв)`,
+    headers: ['Альтернатива', ...project.alternatives.map((_, index) => `${index + 1} місце`), 'Відсіяно', 'Сер. ранг'],
+    rows: [...result.alternatives]
+      .sort((a, b) => b.winShare - a.winShare)
+      .map((item) => [
+        nameById.get(item.id) ?? item.id,
+        ...item.rankCounts.map((count) => formatPercent(count / result.runs)),
+        formatPercent(item.excluded / result.runs),
+        item.meanRank === null ? '—' : formatNumber(item.meanRank, 2),
+      ]),
+  }
+}
+
 export function ReportPage() {
   const project = useProjectStore((state) => state.project)
   const analysis = useAnalysis()
@@ -177,6 +194,8 @@ export function ReportPage() {
   const rankingNumber = weightsNumber + (weights ? 1 : 0)
   const comparisonNumber = rankingNumber + 1
   const sensitivityNumber = comparisonNumber + (comparison ? 1 : 0)
+  const robustnessNumber = sensitivityNumber + (sensitivity ? 1 : 0)
+  const robustness = analysis.best ? robustnessTable(project) : null
 
   return (
     <div className="min-h-svh bg-neutral-100 text-neutral-900 print:bg-white">
@@ -266,7 +285,7 @@ export function ReportPage() {
           </p>
         </ReportSection>
 
-        {(comparison || sensitivity) && (
+        {(comparison || sensitivity || robustness) && (
           <ReportSection number={4} title="Порівняння і стійкість">
             {comparison && <ReportTable number={comparisonNumber} table={comparison} />}
             {analysis.comparison && (
@@ -276,6 +295,7 @@ export function ReportPage() {
               </p>
             )}
             {sensitivity && <ReportTable number={sensitivityNumber} table={sensitivity} />}
+            {robustness && <ReportTable number={robustnessNumber} table={robustness} />}
           </ReportSection>
         )}
       </article>
