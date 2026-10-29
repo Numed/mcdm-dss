@@ -4,15 +4,14 @@ import { AppShell } from '@/app/AppShell'
 import { ReplaceProjectDialog } from '@/app/ReplaceProjectDialog'
 import { type RouteId, routeMeta, useRoute } from '@/app/routes'
 import { useApplyTheme } from '@/app/theme'
-import { useAnalysis } from '@/app/useAnalysis'
 import { useUndoShortcuts } from '@/app/useUndoShortcuts'
-import { CompareTab } from '@/features/CompareTab'
 import { AlternativesPage } from '@/pages/alternatives/AlternativesPage'
 import { GoalsPage } from '@/pages/goals/GoalsPage'
 import { ParamsPage } from '@/pages/params/ParamsPage'
+import { ComparePage } from '@/pages/compare/ComparePage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
+import { SensitivityPage } from '@/pages/sensitivity/SensitivityPage'
 import { ResultsPage } from '@/pages/results/ResultsPage'
-import { useProjectStore } from '@/store/projectStore'
 import { useEffect } from 'react'
 
 type PageProps = {
@@ -20,8 +19,6 @@ type PageProps = {
 }
 
 function Page(props: PageProps) {
-  const project = useProjectStore((state) => state.project)
-  const analysis = useAnalysis()
   switch (props.route) {
     case 'alternatives':
       return <AlternativesPage />
@@ -31,8 +28,10 @@ function Page(props: PageProps) {
       return <ParamsPage />
     case 'results':
       return <ResultsPage />
+    case 'sensitivity':
+      return <SensitivityPage />
     case 'compare':
-      return <CompareTab project={project} analysis={analysis} />
+      return <ComparePage />
     default:
       return <PlaceholderPage title={routeMeta(props.route).title} />
   }
