@@ -6,9 +6,11 @@ import { cn } from '@/lib/utils'
 type SelectTriggerProps = React.ComponentProps<typeof SelectPrimitive.Trigger>
 type SelectContentProps = React.ComponentProps<typeof SelectPrimitive.Content>
 type SelectItemProps = React.ComponentProps<typeof SelectPrimitive.Item>
+type SelectLabelProps = React.ComponentProps<typeof SelectPrimitive.Label>
 
 const Select = SelectPrimitive.Root
 const SelectValue = SelectPrimitive.Value
+const SelectGroup = SelectPrimitive.Group
 
 function SelectTrigger(props: SelectTriggerProps) {
   const { className, children, ...rest } = props
@@ -74,4 +76,9 @@ function SelectItem(props: SelectItemProps) {
   )
 }
 
-export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue }
+function SelectLabel(props: SelectLabelProps) {
+  const { className, ...rest } = props
+  return <SelectPrimitive.Label className={cn('px-2 pt-2 pb-1 eyebrow !text-[11px]', className)} {...rest} />
+}
+
+export { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue }
