@@ -3,7 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>СППР: вибір альтернатив за групами цілей</title>
+    <script>
+      try {
+        var stored = JSON.parse(localStorage.getItem('mcdm-goal-groups-ui') || '{}')
+        var theme = (stored.state && stored.state.theme) || 'system'
+        var dark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+        if (dark && location.hash !== '#report') document.documentElement.classList.add('dark')
+      } catch (error) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
