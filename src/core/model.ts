@@ -6,6 +6,7 @@ import type { SecurityLevel } from './security'
 export type Alternative = {
   id: string
   name: string
+  color?: number
 }
 
 export type Criterion = {
