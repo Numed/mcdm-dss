@@ -29,11 +29,33 @@ export type MatrixMethodResult = {
   scores: Vector
 }
 
-export function matrixMultiplicationMethod(decision: Matrix, order: PowerMeanOrder): MatrixMethodResult {
+export type MatrixMethodSteps = {
+  decision: Matrix
+  relation: Matrix
+  normalizedRelation: Matrix
+  importance: Vector
+  criteriaWeights: Vector
+  weighted: Matrix
+  alternativesRelation: Matrix
+  columnSums: Vector
+  scores: Vector
+}
+
+export function matrixMultiplicationSteps(decision: Matrix, order: PowerMeanOrder): MatrixMethodSteps {
   const criteriaCount = decision.length
   const alternativesCount = criteriaCount === 0 ? 0 : decision[0].length
   if (criteriaCount === 0 || alternativesCount === 0) {
-    return { criteriaWeights: [], scores: new Array<number>(alternativesCount).fill(0) }
+    return {
+      decision,
+      relation: [],
+      normalizedRelation: [],
+      importance: [],
+      criteriaWeights: [],
+      weighted: [],
+      alternativesRelation: [],
+      columnSums: [],
+      scores: new Array<number>(alternativesCount).fill(0),
+    }
   }
 
   const relation = multiply(decision, transpose(decision))
@@ -47,5 +69,20 @@ export function matrixMultiplicationMethod(decision: Matrix, order: PowerMeanOrd
     alternativesRelation.reduce((acc, row) => acc + row[col], 0),
   )
 
-  return { criteriaWeights, scores: normalizeBySum(columnSums) }
+  return {
+    decision,
+    relation,
+    normalizedRelation,
+    importance,
+    criteriaWeights,
+    weighted,
+    alternativesRelation,
+    columnSums,
+    scores: normalizeBySum(columnSums),
+  }
+}
+
+export function matrixMultiplicationMethod(decision: Matrix, order: PowerMeanOrder): MatrixMethodResult {
+  const steps = matrixMultiplicationSteps(decision, order)
+  return { criteriaWeights: steps.criteriaWeights, scores: steps.scores }
 }

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { analyze } from './analysis'
 import { ranksDescending, spearman, topsis, vikor } from './compare'
 import { aggregateGoal } from './goals'
-import { matrixMultiplicationMethod, powerMean } from './matrixMethod'
+import { matrixMultiplicationMethod, matrixMultiplicationSteps, powerMean } from './matrixMethod'
 import { toMembership } from './normalization'
 import { articleExample, bankDemo } from './presets'
 import { maximalSpread, rankBySatisfaction } from './satisfaction'
@@ -42,6 +42,15 @@ describe('matrixMultiplicationMethod', () => {
   it('ranks a dominating alternative first', () => {
     const result = matrixMultiplicationMethod(decision, 1)
     expect(ranksDescending(result.scores)).toEqual([1, 2, 3])
+  })
+
+  it('exposes intermediate matrices consistent with the final result', () => {
+    const steps = matrixMultiplicationSteps(decision, 1)
+    const result = matrixMultiplicationMethod(decision, 1)
+    expect(steps.relation).toHaveLength(3)
+    expect(steps.alternativesRelation).toHaveLength(3)
+    steps.criteriaWeights.forEach((weight, index) => expect(weight).toBeCloseTo(result.criteriaWeights[index]))
+    steps.scores.forEach((score, index) => expect(score).toBeCloseTo(result.scores[index]))
   })
 
   it('is invariant to scaling of the decision matrix', () => {
