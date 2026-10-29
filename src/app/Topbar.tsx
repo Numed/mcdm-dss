@@ -1,4 +1,4 @@
-import { ChevronRight, Menu, PanelLeft, Redo2, Undo2 } from 'lucide-react'
+import { ChevronRight, Menu, MonitorPlay, PanelLeft, Redo2, Undo2 } from 'lucide-react'
 import { InlineEdit } from '@/components/app/InlineEdit'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -94,6 +94,12 @@ export function Topbar(props: TopbarProps) {
         </span>
       </nav>
       <StatusIndicator />
+      <Button asChild variant="outline" size="sm" className="hidden lg:inline-flex">
+        <a href={routeHref('present')}>
+          <MonitorPlay />
+          Презентація
+        </a>
+      </Button>
       <div className="flex items-center">
         <Tooltip>
           <TooltipTrigger asChild>

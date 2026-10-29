@@ -16,6 +16,7 @@ const ResultsPage = lazy(() => import('@/pages/results/ResultsPage').then((modul
 const SensitivityPage = lazy(() => import('@/pages/sensitivity/SensitivityPage').then((module) => ({ default: module.SensitivityPage })))
 const ComparePage = lazy(() => import('@/pages/compare/ComparePage').then((module) => ({ default: module.ComparePage })))
 const MethodPage = lazy(() => import('@/pages/method/MethodPage').then((module) => ({ default: module.MethodPage })))
+const PresentationPage = lazy(() => import('@/pages/present/PresentationPage').then((module) => ({ default: module.PresentationPage })))
 const ReportPage = lazy(() => import('@/pages/report/ReportPage').then((module) => ({ default: module.ReportPage })))
 
 type PageProps = {
@@ -55,11 +56,17 @@ export default function App() {
 
   return (
     <TooltipProvider delayDuration={300}>
-      {route === 'report' ? (
+      {route === 'report' && (
         <Suspense fallback={null}>
           <ReportPage />
         </Suspense>
-      ) : (
+      )}
+      {route === 'present' && (
+        <Suspense fallback={null}>
+          <PresentationPage />
+        </Suspense>
+      )}
+      {route !== 'report' && route !== 'present' && (
         <AppShell route={route}>
           <Suspense fallback={<PageSkeleton />}>
             <Page route={route} />
