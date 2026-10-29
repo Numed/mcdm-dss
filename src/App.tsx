@@ -1,20 +1,22 @@
-import { TooltipProvider } from '@/components/ui/tooltip'
-import { Toaster } from '@/components/ui/sonner'
+import { Suspense, lazy, useEffect } from 'react'
 import { AppShell } from '@/app/AppShell'
 import { ReplaceProjectDialog } from '@/app/ReplaceProjectDialog'
 import { type RouteId, routeMeta, useRoute } from '@/app/routes'
 import { useApplyTheme } from '@/app/theme'
 import { useUndoShortcuts } from '@/app/useUndoShortcuts'
-import { AlternativesPage } from '@/pages/alternatives/AlternativesPage'
-import { GoalsPage } from '@/pages/goals/GoalsPage'
-import { ParamsPage } from '@/pages/params/ParamsPage'
-import { ComparePage } from '@/pages/compare/ComparePage'
-import { MethodPage } from '@/pages/method/MethodPage'
+import { PageSkeleton } from '@/components/app/PageSkeleton'
+import { Toaster } from '@/components/ui/sonner'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { OverviewPage } from '@/pages/overview/OverviewPage'
-import { ReportPage } from '@/pages/report/ReportPage'
-import { SensitivityPage } from '@/pages/sensitivity/SensitivityPage'
-import { ResultsPage } from '@/pages/results/ResultsPage'
-import { useEffect } from 'react'
+
+const AlternativesPage = lazy(() => import('@/pages/alternatives/AlternativesPage').then((module) => ({ default: module.AlternativesPage })))
+const GoalsPage = lazy(() => import('@/pages/goals/GoalsPage').then((module) => ({ default: module.GoalsPage })))
+const ParamsPage = lazy(() => import('@/pages/params/ParamsPage').then((module) => ({ default: module.ParamsPage })))
+const ResultsPage = lazy(() => import('@/pages/results/ResultsPage').then((module) => ({ default: module.ResultsPage })))
+const SensitivityPage = lazy(() => import('@/pages/sensitivity/SensitivityPage').then((module) => ({ default: module.SensitivityPage })))
+const ComparePage = lazy(() => import('@/pages/compare/ComparePage').then((module) => ({ default: module.ComparePage })))
+const MethodPage = lazy(() => import('@/pages/method/MethodPage').then((module) => ({ default: module.MethodPage })))
+const ReportPage = lazy(() => import('@/pages/report/ReportPage').then((module) => ({ default: module.ReportPage })))
 
 type PageProps = {
   route: RouteId
@@ -36,8 +38,6 @@ function Page(props: PageProps) {
       return <ComparePage />
     case 'method':
       return <MethodPage />
-    case 'report':
-      return <ReportPage />
     default:
       return <OverviewPage />
   }
@@ -56,10 +56,14 @@ export default function App() {
   return (
     <TooltipProvider delayDuration={300}>
       {route === 'report' ? (
-        <ReportPage />
+        <Suspense fallback={null}>
+          <ReportPage />
+        </Suspense>
       ) : (
         <AppShell route={route}>
-          <Page route={route} />
+          <Suspense fallback={<PageSkeleton />}>
+            <Page route={route} />
+          </Suspense>
         </AppShell>
       )}
       <ReplaceProjectDialog />
