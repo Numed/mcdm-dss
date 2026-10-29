@@ -204,7 +204,7 @@ export function GoalSpaceChart(props: GoalSpaceChartProps) {
             height={height}
             role="img"
             aria-label={`Простір цілей: ${goalNames[0]} та ${goalNames[1]}`}
-            className="block overflow-visible text-[11px]"
+            className="mx-auto block overflow-visible text-[11px]"
             onMouseLeave={() => setHovered(null)}
           >
             <defs>

@@ -71,9 +71,15 @@ export function comparisonTable(project: Project, analysis: AnalysisResult): Dat
     headers: ['Альтернатива', ...comparison.methods.flatMap((method) => [`${method.method}: оцінка`, `${method.method}: ранг`])],
     rows: comparison.alternativeIds.map((id, index) => [
       nameById.get(id) ?? id,
-      ...comparison.methods.flatMap((method) => [method.scores[index], method.ranks[index]]),
+      ...comparison.methods.flatMap((method) => [method.scores[index], String(method.ranks[index])]),
     ]),
   }
+}
+
+const NUMERIC_TEXT = /^[-−]?\d[\d\s\u00a0]*(,\d+)?$/
+
+export function isNumericCell(cell: Cell): boolean {
+  return typeof cell === 'number' || NUMERIC_TEXT.test(cell)
 }
 
 export function cellText(cell: Cell): string {
