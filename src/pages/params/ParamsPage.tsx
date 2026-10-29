@@ -32,6 +32,7 @@ type SecurityScaleProps = {
 }
 
 const ORDERS: PowerMeanOrder[] = [-1, 0, 1, 2]
+const NORMALIZATIONS: GoalNormalization[] = ['max', 'sum']
 
 const ORDER_TEXT: Record<PowerMeanOrder, { title: string; description: string }> = {
   [-1]: { title: 'Гармонійне, t = −1', description: 'Найбільш песимістичне: слабкі зв’язки між критеріями сильно знижують вагу.' },
@@ -128,7 +129,7 @@ export function ParamsPage() {
   const winners = useMemo(() => {
     const byOrder = new Map(ORDERS.map((order) => [order, analyzeCached({ ...project, powerMeanOrder: order }).best]))
     const byNormalization = new Map(
-      (['max', 'sum'] as const).map((normalization) => [
+      NORMALIZATIONS.map((normalization) => [
         normalization,
         analyzeCached({ ...project, goalNormalization: normalization }).best,
       ]),
@@ -149,7 +150,7 @@ export function ParamsPage() {
     ),
   }))
 
-  const normalizationOptions: RadioCardOption<GoalNormalization>[] = (['max', 'sum'] as const).map((normalization) => ({
+  const normalizationOptions: RadioCardOption<GoalNormalization>[] = NORMALIZATIONS.map((normalization) => ({
     value: normalization,
     title: NORMALIZATION_TEXT[normalization].title,
     description: NORMALIZATION_TEXT[normalization].description,

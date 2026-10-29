@@ -3,7 +3,7 @@ import { useResultMeta } from '@/app/useResultMeta'
 import { type Issue, issuesForRoute } from '@/app/validation'
 import { IssueList } from '@/components/app/IssueList'
 import { PageHeader } from '@/components/app/PageHeader'
-import { SegmentedControl } from '@/components/app/SegmentedControl'
+import { type SegmentOption, SegmentedControl } from '@/components/app/SegmentedControl'
 import { Card } from '@/components/ui/card'
 import type { InputMode, Project } from '@/core/model'
 import { useProjectStore } from '@/store/projectStore'
@@ -13,9 +13,9 @@ import { GoalEditor } from './GoalEditor'
 import { GoalTree } from './GoalTree'
 import { GroupEditor } from './GroupEditor'
 
-const MODE_OPTIONS = [
-  { value: 'criteria' as const, label: 'Матриці критеріїв' },
-  { value: 'direct' as const, label: 'Готові оцінки' },
+const MODE_OPTIONS: SegmentOption<InputMode>[] = [
+  { value: 'criteria', label: 'Матриці критеріїв' },
+  { value: 'direct', label: 'Готові оцінки' },
 ]
 
 function resolveSelection(project: Project, selection: GoalTreeSelection | null): GoalTreeSelection | null {

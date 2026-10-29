@@ -4,7 +4,7 @@ import { notifyPaste, notifyRemoved } from '@/app/notify'
 import { cellFlag } from '@/app/validation'
 import { AltDot } from '@/components/app/AltDot'
 import { GridNumberCell, GridTextCell } from '@/components/app/DataGrid'
-import { SegmentedControl } from '@/components/app/SegmentedControl'
+import { type SegmentOption, SegmentedControl } from '@/components/app/SegmentedControl'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { Alternative, CriteriaGroup } from '@/core/model'
@@ -26,9 +26,9 @@ type GroupEditorProps = {
   onRemoved: () => void
 }
 
-const DIRECTION_OPTIONS = [
-  { value: 'benefit' as const, label: '↑ max', title: 'Максимізація: x / max' },
-  { value: 'cost' as const, label: '↓ min', title: 'Мінімізація: min / x' },
+const DIRECTION_OPTIONS: SegmentOption<CriterionDirection>[] = [
+  { value: 'benefit', label: '↑ max', title: 'Максимізація: x / max' },
+  { value: 'cost', label: '↓ min', title: 'Мінімізація: min / x' },
 ]
 
 export function GroupEditor(props: GroupEditorProps) {
