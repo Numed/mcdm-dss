@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { type KeyboardEvent, type PointerEvent, useId, useRef, useState } from 'react'
 import { useElementSize } from '@/app/useElementSize'
 import { AltDot } from '@/components/app/AltDot'
 import type { AlternativeResult } from '@/core/analysis'
@@ -7,7 +7,7 @@ import { SECURITY_LEVELS, type SecurityLevel } from '@/core/security'
 import { securityColorVar } from '@/lib/colors'
 import type { DisplayRank } from '@/lib/ranking'
 import { formatRank } from '@/lib/ranking'
-import { formatFixed, formatNumber, formatVector } from '@/lib/utils'
+import { cn, formatFixed, formatNumber, formatVector } from '@/lib/utils'
 import { ChartLegend, type LegendItem } from './ChartLegend'
 import { ChartTooltip, TooltipRow } from './ChartTooltip'
 
@@ -20,6 +20,7 @@ type GoalSpaceChartProps = {
   minSecurityLevel: SecurityLevel
   maxPlotSize?: number
   interactive?: boolean
+  onTargetChange?: (termX: number, termY: number) => void
 }
 
 type Box = {
@@ -64,6 +65,8 @@ const LEVELS: SecurityLevel[] = [1, 2, 3, 4, 5]
 const LABEL_HEIGHT = 14
 const CHAR_WIDTH = 6.3
 const TARGET_ID = '__target__'
+const TERM_STEPS = 5
+const TERM_TICKS = [0, 1, 2, 3, 4, 5]
 
 const CANDIDATES: LabelCandidate[] = [
   { dx: 10, dy: -8, anchor: 'start' },
@@ -125,6 +128,10 @@ function zoneFill(level: SecurityLevel): string {
   return `color-mix(in srgb, ${securityColorVar(level)} ${7 + level * 2}%, var(--card))`
 }
 
+function toTerm(value: number): number {
+  return Math.min(TERM_STEPS, Math.max(0, Math.round(value * TERM_STEPS)))
+}
+
 function linkOpacity(active: boolean, anyHovered: boolean): number {
   if (active) return 0.95
   if (anyHovered) return 0.12
@@ -146,9 +153,13 @@ export function GoalSpaceChart(props: GoalSpaceChartProps) {
     minSecurityLevel,
     maxPlotSize = 460,
     interactive = true,
+    onTargetChange,
   } = props
   const { ref, size } = useElementSize<HTMLDivElement>()
+  const svgRef = useRef<SVGSVGElement>(null)
   const [hovered, setHovered] = useState<string | null>(null)
+  const [dragging, setDragging] = useState(false)
+  const draggable = interactive && onTargetChange !== undefined
   const patternId = useId()
 
   const available = Math.max(size.width - MARGIN_LEFT - MARGIN_RIGHT, 0)
@@ -184,7 +195,36 @@ export function GoalSpaceChart(props: GoalSpaceChartProps) {
     : []
   const labelById = new Map(labels.map((label) => [label.id, label]))
   const targetPlacement = labelById.get(TARGET_ID)
-  const hoveredAlt = alternatives.find((alt) => alt.id === hovered) ?? null
+  const hoveredAlt = dragging ? null : (alternatives.find((alt) => alt.id === hovered) ?? null)
+  const currentTermX = toTerm(tx)
+  const currentTermY = toTerm(ty)
+
+  const moveTarget = (termX: number, termY: number) => {
+    const nextX = Math.min(TERM_STEPS, Math.max(0, termX))
+    const nextY = Math.min(TERM_STEPS, Math.max(0, termY))
+    if (nextX !== currentTermX || nextY !== currentTermY) onTargetChange?.(nextX, nextY)
+  }
+
+  const moveToPointer = (event: PointerEvent<SVGElement>) => {
+    const rect = svgRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const valueX = (event.clientX - rect.left - geometry.left) / geometry.plot
+    const valueY = 1 - (event.clientY - rect.top - geometry.top) / geometry.plot
+    moveTarget(toTerm(valueX), toTerm(valueY))
+  }
+
+  const handleTargetKey = (event: KeyboardEvent<SVGElement>) => {
+    const moves: Record<string, [number, number]> = {
+      ArrowLeft: [-1, 0],
+      ArrowRight: [1, 0],
+      ArrowUp: [0, 1],
+      ArrowDown: [0, -1],
+    }
+    const move = moves[event.key]
+    if (!move) return
+    event.preventDefault()
+    moveTarget(currentTermX + move[0], currentTermY + move[1])
+  }
 
   const legendItems: LegendItem[] = [
     ...alternatives.map((alt) => ({
@@ -200,6 +240,7 @@ export function GoalSpaceChart(props: GoalSpaceChartProps) {
       <div ref={ref} className="relative w-full" style={{ height }}>
         {size.width > 0 && (
           <svg
+            ref={svgRef}
             width={width}
             height={height}
             role="img"
@@ -393,6 +434,72 @@ export function GoalSpaceChart(props: GoalSpaceChartProps) {
                 </g>
               )
             })}
+            {draggable && dragging && (
+              <g pointerEvents="none">
+                {TERM_TICKS.map((termX) =>
+                  TERM_TICKS.map((termY) => (
+                    <circle
+                      key={`${termX}-${termY}`}
+                      cx={toX(termX / TERM_STEPS)}
+                      cy={toY(termY / TERM_STEPS)}
+                      r={2}
+                      fill="var(--primary)"
+                      fillOpacity={0.45}
+                    />
+                  )),
+                )}
+                <path
+                  d={`M ${toX(0)} ${toY(ty)} H ${toX(tx)} V ${toY(0)}`}
+                  fill="none"
+                  stroke="var(--primary)"
+                  strokeWidth={1.25}
+                  strokeDasharray="4 3"
+                />
+                <text x={toX(0) + 4} y={toY(ty) - 5} fontSize={10} fontWeight={600} fill="var(--primary)" className="num">
+                  t₂ = {formatNumber(ty, 1)}
+                </text>
+                <text x={toX(tx) + 5} y={toY(0) - 6} fontSize={10} fontWeight={600} fill="var(--primary)" className="num">
+                  t₁ = {formatNumber(tx, 1)}
+                </text>
+              </g>
+            )}
+
+            {draggable && (
+              <g>
+                <circle
+                  cx={toX(tx)}
+                  cy={toY(ty)}
+                  r={13}
+                  fill="none"
+                  stroke="var(--primary)"
+                  strokeWidth={1.5}
+                  strokeDasharray={dragging ? undefined : '3 3'}
+                  strokeOpacity={dragging ? 0.9 : 0.6}
+                  pointerEvents="none"
+                />
+                <circle
+                  cx={toX(tx)}
+                  cy={toY(ty)}
+                  r={18}
+                  fill="transparent"
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`Вектор задоволення T ${formatVector([tx, ty], 1)}. Перетягніть або змініть стрілками`}
+                  className={cn('outline-none focus-visible:stroke-ring focus-visible:stroke-2', dragging ? 'cursor-grabbing' : 'cursor-grab')}
+                  onPointerDown={(event) => {
+                    event.currentTarget.setPointerCapture(event.pointerId)
+                    setDragging(true)
+                    setHovered(null)
+                  }}
+                  onPointerMove={(event) => {
+                    if (dragging) moveToPointer(event)
+                  }}
+                  onPointerUp={() => setDragging(false)}
+                  onPointerCancel={() => setDragging(false)}
+                  onKeyDown={handleTargetKey}
+                />
+              </g>
+            )}
           </svg>
         )}
 
@@ -429,6 +536,7 @@ export function GoalSpaceChart(props: GoalSpaceChartProps) {
               Поріг безпеки
             </li>
           )}
+          {draggable && <li className="text-primary">Перетягніть T, щоб змінити потреби</li>}
         </ul>
       </div>
     </div>

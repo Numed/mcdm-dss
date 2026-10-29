@@ -25,6 +25,11 @@ export function ResultsPage() {
   const meta = useResultMeta(project, analysis)
   const goalCount = project.goals.length
   const targetSum = analysis.target.reduce((acc, value) => acc + value, 0)
+  const setSatisfactionTerms = useProjectStore((state) => state.setSatisfactionTerms)
+  const moveTarget = (termX: number, termY: number) => {
+    const [goalX, goalY] = project.goals
+    if (goalX && goalY) setSatisfactionTerms([{ goalId: goalX.id, term: termX }, { goalId: goalY.id, term: termY }])
+  }
 
   const actions = (
     <>
@@ -90,6 +95,7 @@ export function ResultsPage() {
                 target={analysis.target}
                 goalNames={meta.goalLabels}
                 minSecurityLevel={project.minSecurityLevel}
+                onTargetChange={moveTarget}
               />
             )}
             {goalCount > 2 && (

@@ -121,6 +121,7 @@ export function ParamsPage() {
   const setMinSecurityLevel = useProjectStore((state) => state.setMinSecurityLevel)
   const setPowerMeanOrder = useProjectStore((state) => state.setPowerMeanOrder)
   const setGoalNormalization = useProjectStore((state) => state.setGoalNormalization)
+  const setSatisfactionTerms = useProjectStore((state) => state.setSatisfactionTerms)
   const analysis = useAnalysis()
   const meta = useResultMeta(project, analysis)
   const criteriaMode = project.inputMode === 'criteria'
@@ -325,6 +326,10 @@ export function ParamsPage() {
                 goalNames={meta.goalLabels.map((_, index) => `G${index + 1}`)}
                 minSecurityLevel={project.minSecurityLevel}
                 maxPlotSize={268}
+                onTargetChange={(termX, termY) => {
+                  const [goalX, goalY] = project.goals
+                  if (goalX && goalY) setSatisfactionTerms([{ goalId: goalX.id, term: termX }, { goalId: goalY.id, term: termY }])
+                }}
               />
             )}
             <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/50 px-3 py-2.5 text-[13px]">
