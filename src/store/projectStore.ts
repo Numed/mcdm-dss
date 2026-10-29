@@ -22,6 +22,11 @@ export type PasteSummary = {
   skipped: number
 }
 
+export type TermPatch = {
+  goalId: string
+  term: number
+}
+
 export type CellPatch = {
   criterionId: string
   alternativeId: string
@@ -44,6 +49,7 @@ type ProjectActions = {
   renameGoal: (goalId: string, name: string) => void
   removeGoal: (goalId: string) => void
   setSatisfactionTerm: (goalId: string, term: number) => void
+  setSatisfactionTerms: (patches: TermPatch[]) => void
   setDirectScore: (goalId: string, alternativeId: string, value: number) => void
   addGroup: (goalId: string) => string
   renameGroup: (goalId: string, groupId: string, name: string) => void
@@ -260,6 +266,25 @@ export const useProjectStore = create<ProjectState>()(
         set((state) =>
           commit(state, mapGoal(state.project, goalId, (goal) => ({ ...goal, satisfactionTerm })), `term:${goalId}`),
         ),
+      setSatisfactionTerms: (patches) =>
+        set((state) => {
+          const termById = new Map(patches.map((patch) => [patch.goalId, patch.term]))
+          const changed = state.project.goals.some(
+            (goal) => termById.has(goal.id) && termById.get(goal.id) !== goal.satisfactionTerm,
+          )
+          if (!changed) return {}
+          return commit(
+            state,
+            {
+              ...state.project,
+              goals: state.project.goals.map((goal) => ({
+                ...goal,
+                satisfactionTerm: termById.get(goal.id) ?? goal.satisfactionTerm,
+              })),
+            },
+            'target',
+          )
+        }),
       setDirectScore: (goalId, alternativeId, value) =>
         set((state) =>
           commit(
