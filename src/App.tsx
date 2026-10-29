@@ -1,125 +1,58 @@
-import { BarChart3, Database, Download, FileUp, GitCompare, SlidersHorizontal } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { analyze } from '@/core/analysis'
-import { articleExample, bankDemo, emptyProject } from '@/core/presets'
-import { isProject } from '@/core/validate'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { Toaster } from '@/components/ui/sonner'
+import { AppShell } from '@/app/AppShell'
+import { ReplaceProjectDialog } from '@/app/ReplaceProjectDialog'
+import { type RouteId, routeMeta, useRoute } from '@/app/routes'
+import { useApplyTheme } from '@/app/theme'
+import { useAnalysis } from '@/app/useAnalysis'
+import { useUndoShortcuts } from '@/app/useUndoShortcuts'
 import { CompareTab } from '@/features/CompareTab'
 import { DataTab } from '@/features/DataTab'
 import { ParamsTab } from '@/features/ParamsTab'
 import { ResultsTab } from '@/features/ResultsTab'
+import { PlaceholderPage } from '@/pages/PlaceholderPage'
 import { useProjectStore } from '@/store/projectStore'
+import { useEffect } from 'react'
 
-function downloadJson(fileName: string, data: unknown) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = fileName
-  link.click()
-  URL.revokeObjectURL(url)
+type PageProps = {
+  route: RouteId
+}
+
+function Page(props: PageProps) {
+  const project = useProjectStore((state) => state.project)
+  const analysis = useAnalysis()
+  switch (props.route) {
+    case 'goals':
+    case 'alternatives':
+      return <DataTab />
+    case 'params':
+      return <ParamsTab />
+    case 'results':
+      return <ResultsTab project={project} analysis={analysis} />
+    case 'compare':
+      return <CompareTab project={project} analysis={analysis} />
+    default:
+      return <PlaceholderPage title={routeMeta(props.route).title} />
+  }
 }
 
 export default function App() {
-  const project = useProjectStore((state) => state.project)
-  const loadProject = useProjectStore((state) => state.loadProject)
-  const analysis = useMemo(() => analyze(project), [project])
-  const fileInput = useRef<HTMLInputElement>(null)
-  const [importError, setImportError] = useState<string | null>(null)
+  const route = useRoute()
+  useApplyTheme(route === 'report')
+  useUndoShortcuts()
 
-  const handleImport = async (file: File) => {
-    try {
-      const parsed: unknown = JSON.parse(await file.text())
-      if (!isProject(parsed)) {
-        setImportError('Файл не схожий на проєкт цієї системи')
-        return
-      }
-      setImportError(null)
-      loadProject(parsed)
-    } catch {
-      setImportError('Не вдалося прочитати JSON')
-    }
-  }
+  useEffect(() => {
+    document.title = `${routeMeta(route).title} · СППР: вибір альтернатив за групами цілей`
+    window.scrollTo({ top: 0 })
+  }, [route])
 
   return (
-    <div className="min-h-screen">
-      <header className="border-b bg-card">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <div className="text-xs font-medium tracking-wide text-primary uppercase">Система підтримки прийняття рішень</div>
-            <h1 className="mt-1 text-xl font-semibold">Багатокритеріальний вибір альтернатив за групами цілей</h1>
-            <p className="mt-1 text-sm text-muted-foreground">{project.title}</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => loadProject(bankDemo())}>
-              Демо: банки
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => loadProject(articleExample())}>
-              Приклад зі статті
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => loadProject(emptyProject())}>
-              Новий проєкт
-            </Button>
-            <div className="mx-1 h-6 w-px bg-border" />
-            <Button variant="ghost" size="sm" onClick={() => downloadJson('project.json', project)}>
-              <Download />
-              Експорт
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => fileInput.current?.click()}>
-              <FileUp />
-              Імпорт
-            </Button>
-            <input
-              ref={fileInput}
-              type="file"
-              accept="application/json,.json"
-              className="hidden"
-              onChange={(event) => {
-                const file = event.target.files?.[0]
-                if (file) void handleImport(file)
-                event.target.value = ''
-              }}
-            />
-          </div>
-        </div>
-        {importError && <div className="mx-auto max-w-7xl px-6 pb-3 text-sm text-destructive">{importError}</div>}
-      </header>
-
-      <main className="mx-auto max-w-7xl px-6 py-6">
-        <Tabs defaultValue="data">
-          <TabsList className="h-auto flex-wrap">
-            <TabsTrigger value="data">
-              <Database />
-              Дані
-            </TabsTrigger>
-            <TabsTrigger value="params">
-              <SlidersHorizontal />
-              Параметри
-            </TabsTrigger>
-            <TabsTrigger value="results">
-              <BarChart3 />
-              Результати
-            </TabsTrigger>
-            <TabsTrigger value="compare">
-              <GitCompare />
-              Порівняння методів
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="data">
-            <DataTab />
-          </TabsContent>
-          <TabsContent value="params">
-            <ParamsTab />
-          </TabsContent>
-          <TabsContent value="results">
-            <ResultsTab project={project} analysis={analysis} />
-          </TabsContent>
-          <TabsContent value="compare">
-            <CompareTab project={project} analysis={analysis} />
-          </TabsContent>
-        </Tabs>
-      </main>
-    </div>
+    <TooltipProvider delayDuration={300}>
+      <AppShell route={route}>
+        <Page route={route} />
+      </AppShell>
+      <ReplaceProjectDialog />
+      <Toaster />
+    </TooltipProvider>
   )
 }
