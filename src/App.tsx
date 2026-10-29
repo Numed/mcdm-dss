@@ -9,8 +9,8 @@ import { useUndoShortcuts } from '@/app/useUndoShortcuts'
 import { CompareTab } from '@/features/CompareTab'
 import { DataTab } from '@/features/DataTab'
 import { ParamsTab } from '@/features/ParamsTab'
-import { ResultsTab } from '@/features/ResultsTab'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
+import { ResultsPage } from '@/pages/results/ResultsPage'
 import { useProjectStore } from '@/store/projectStore'
 import { useEffect } from 'react'
 
@@ -28,7 +28,7 @@ function Page(props: PageProps) {
     case 'params':
       return <ParamsTab />
     case 'results':
-      return <ResultsTab project={project} analysis={analysis} />
+      return <ResultsPage />
     case 'compare':
       return <CompareTab project={project} analysis={analysis} />
     default:
