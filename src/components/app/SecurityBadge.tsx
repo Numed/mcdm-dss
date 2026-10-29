@@ -21,7 +21,7 @@ export function SecurityBadge(props: SecurityBadgeProps) {
         !passes && 'border-dashed text-muted-foreground',
         className,
       )}
-      style={passes ? { backgroundColor: `color-mix(in oklch, ${color} 12%, transparent)`, borderColor: `color-mix(in oklch, ${color} 35%, transparent)` } : undefined}
+      style={passes ? { backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)`, borderColor: `color-mix(in srgb, ${color} 35%, transparent)` } : undefined}
     >
       <span aria-hidden className="size-1.5 rounded-full" style={{ backgroundColor: color }} />
       <span>B{level}</span>

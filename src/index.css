@@ -181,6 +181,19 @@
   }
 }
 
+.katex-display {
+  margin: 0 !important;
+  text-align: left !important;
+}
+
+.katex-display > .katex {
+  text-align: left !important;
+}
+
+.katex {
+  font-size: 1.08em;
+}
+
 @utility num-tex {
   font-size: 1.02em;
 }

@@ -17,6 +17,10 @@ export function securityColorVar(level: SecurityLevel): string {
 
 export function correlationColor(value: number): string {
   const clamped = Math.min(Math.max(value, -1), 1)
-  if (clamped >= 0) return `color-mix(in oklch, var(--corr-pos) ${Math.round(clamped * 100)}%, var(--corr-mid))`
-  return `color-mix(in oklch, var(--corr-neg) ${Math.round(-clamped * 100)}%, var(--corr-mid))`
+  if (clamped >= 0) return `color-mix(in srgb, var(--corr-pos) ${Math.round(clamped * 100)}%, var(--corr-mid))`
+  return `color-mix(in srgb, var(--corr-neg) ${Math.round(-clamped * 100)}%, var(--corr-mid))`
+}
+
+export function goalColorVar(index: number): string {
+  return `var(--goal-${(index % 4) + 1})`
 }
