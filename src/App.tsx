@@ -7,9 +7,9 @@ import { useApplyTheme } from '@/app/theme'
 import { useAnalysis } from '@/app/useAnalysis'
 import { useUndoShortcuts } from '@/app/useUndoShortcuts'
 import { CompareTab } from '@/features/CompareTab'
-import { ParamsTab } from '@/features/ParamsTab'
 import { AlternativesPage } from '@/pages/alternatives/AlternativesPage'
 import { GoalsPage } from '@/pages/goals/GoalsPage'
+import { ParamsPage } from '@/pages/params/ParamsPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 import { ResultsPage } from '@/pages/results/ResultsPage'
 import { useProjectStore } from '@/store/projectStore'
@@ -28,7 +28,7 @@ function Page(props: PageProps) {
     case 'goals':
       return <GoalsPage />
     case 'params':
-      return <ParamsTab />
+      return <ParamsPage />
     case 'results':
       return <ResultsPage />
     case 'compare':
