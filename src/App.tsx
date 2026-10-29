@@ -9,7 +9,9 @@ import { AlternativesPage } from '@/pages/alternatives/AlternativesPage'
 import { GoalsPage } from '@/pages/goals/GoalsPage'
 import { ParamsPage } from '@/pages/params/ParamsPage'
 import { ComparePage } from '@/pages/compare/ComparePage'
-import { PlaceholderPage } from '@/pages/PlaceholderPage'
+import { MethodPage } from '@/pages/method/MethodPage'
+import { OverviewPage } from '@/pages/overview/OverviewPage'
+import { ReportPage } from '@/pages/report/ReportPage'
 import { SensitivityPage } from '@/pages/sensitivity/SensitivityPage'
 import { ResultsPage } from '@/pages/results/ResultsPage'
 import { useEffect } from 'react'
@@ -32,8 +34,12 @@ function Page(props: PageProps) {
       return <SensitivityPage />
     case 'compare':
       return <ComparePage />
+    case 'method':
+      return <MethodPage />
+    case 'report':
+      return <ReportPage />
     default:
-      return <PlaceholderPage title={routeMeta(props.route).title} />
+      return <OverviewPage />
   }
 }
 
@@ -49,9 +55,13 @@ export default function App() {
 
   return (
     <TooltipProvider delayDuration={300}>
-      <AppShell route={route}>
-        <Page route={route} />
-      </AppShell>
+      {route === 'report' ? (
+        <ReportPage />
+      ) : (
+        <AppShell route={route}>
+          <Page route={route} />
+        </AppShell>
+      )}
       <ReplaceProjectDialog />
       <Toaster />
     </TooltipProvider>

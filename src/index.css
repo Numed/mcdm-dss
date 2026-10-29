@@ -211,3 +211,19 @@
   text-transform: uppercase;
   color: var(--muted-foreground);
 }
+
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm 14mm 16mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+}
