@@ -21,7 +21,7 @@ export function formatVector(values: number[], digits = 3): string {
 
 export function formatPercent(value: number, digits = 1): string {
   if (!Number.isFinite(value)) return '-'
-  return `${(value * 100).toLocaleString('uk-UA', { minimumFractionDigits: digits, maximumFractionDigits: digits })} %`
+  return `${(value * 100).toLocaleString('uk-UA', { minimumFractionDigits: digits, maximumFractionDigits: digits })}\u00a0%`
 }
 
 export function pluralUk(count: number, one: string, few: string, many: string): string {

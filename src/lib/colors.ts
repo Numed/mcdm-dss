@@ -24,3 +24,8 @@ export function correlationColor(value: number): string {
 export function goalColorVar(index: number): string {
   return `var(--goal-${(index % 4) + 1})`
 }
+
+export function rankShade(rank: number, total: number): string {
+  const step = total > 1 ? 72 / (total - 1) : 0
+  return `color-mix(in srgb, var(--primary) ${Math.round(100 - (rank - 1) * step)}%, var(--card))`
+}
