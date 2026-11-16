@@ -1,54 +1,33 @@
-# СППР: багатокритеріальний вибір альтернатив за групами цілей
+# MCDM Decision Support System
 
-Вебзастосунок до магістерської роботи «Розроблення інформаційної технології підтримки прийняття рішень для багатокритеріального вибору альтернатив за групами цілей».
+A web app that helps choose the best alternative when there are many criteria grouped by goals. Built as the software part of my master's thesis.
 
-Стек: React 19, TypeScript, Zustand, Tailwind CSS 4, shadcn/ui (Radix), Vite, Vitest.
+Live demo: https://mcdm-dss.vercel.app
 
-## Запуск
+## What it does
 
-```bash
-npm install
-npm run dev          # режим розробки
-npm test             # тести обчислювального ядра
-npm run build        # збірка в dist/
-npm run build:single # один HTML-файл у dist-single/
-```
+- Define alternatives, criteria and goal groups, with weights and parameters
+- Normalize the data and rank alternatives with a matrix-based method
+- Run sensitivity and robustness analysis to see how stable the ranking is
+- Compare projects side by side
+- Visualize results with charts and render formulas with KaTeX
+- Import and export data as Excel files, generate a report and a presentation view
 
-## Структура
+## Tech stack
 
-- `src/core` - обчислювальне ядро без залежності від React
-  - `matrixMethod.ts` - метод множення матриць (кроки 1-7), середнє порядку t, проміжні матриці для деталізації
-  - `goals.ts` - дворівневе агрегування за групами критеріїв і за ціллю
-  - `normalization.ts` - перехід до функцій належності (максимізація x / max, мінімізація min / x)
-  - `security.ts` - рівні безпеки B1-B5
-  - `satisfaction.ts` - «вектор задоволення», формули (17)-(22)
-  - `compare.ts`, `compareProject.ts` - TOPSIS, VIKOR, кореляція Спірмена
-  - `sensitivity.ts` - чутливість до t, термів вектора задоволення і порогу безпеки
-  - `robustness.ts` - стійкість до похибок даних методом Монте-Карло (відтворюване зерно)
-  - `analysis.ts` - повний конвеєр інформаційної технології
-- `src/store` - Zustand-стори: проєкт з історією змін (undo/redo) і стан інтерфейсу, збереження в localStorage
-- `src/app` - каркас: маршрути (`#results`), тема, бічна панель, валідація, експорт, формули
-- `src/pages` - екрани: огляд, альтернативи, цілі та критерії, параметри, результати, чутливість, порівняння, про метод, звіт
-- `src/components/charts` - SVG-графіки: простір цілей, пелюсткова діаграма, склад Z*, bump chart
-- `src/components/app`, `src/components/ui` - компоненти застосунку і shadcn/ui
+React 19, TypeScript, Zustand, Tailwind CSS 4, shadcn/ui (Radix UI), Vite, Vitest
 
-## Екрани
+## Architecture
 
-- `#overview` - опис задачі, етапи ІТ зі станом, KPI, шаблони проєкту
-- `#alternatives` - таблиця з drag-and-drop порядком і кольорами
-- `#goals` - дерево «ціль → група → критерій» і матриця значень зі вставкою з Excel (Ctrl+V)
-- `#params` - терми вектора задоволення, поріг безпеки, параметри методу; точку T можна перетягувати на графіку
-- `#results` - переможець, простір цілей, склад Z*, ранжування, деталі розрахунку з формулами
-- `#sensitivity` - стійкість до похибок даних (Монте-Карло, 1000 сценаріїв), ранги за різних t, теплова карта переможців 6 × 6, поріг безпеки
-- `#compare` - запропонований метод, TOPSIS і VIKOR, кореляція Спірмена
-- `#method` - кроки методу з формулами (2.1)-(2.17); нумерацію задано в `src/app/formulas.ts`
-- `#report` - звіт для друку або збереження в PDF
-- `#present` - режим презентації для захисту: 9 слайдів на живих даних, ← → гортати, F повний екран, Esc вихід, `#present/5` відкриває конкретний слайд
+- `src/core/` - computation core in pure TypeScript, independent of the UI and covered by unit tests
+- `src/pages/` - one page per step of the workflow
+- `src/components/` - UI and chart components
+- `src/store/` - Zustand stores
 
-## Рішення, прийняті під час реалізації
+## Getting started
 
-- Рівень безпеки альтернативи визначається її найслабшою координатою у просторі цілей.
-- Нормування матриці A ділиться на кількість альтернатив n (у статті вказано m). На ваги критеріїв це не впливає, бо середнє порядку t однорідне.
-- Середнє порядку t реалізоване як (1/m · Σ x^t)^(1/t); у формулі (5) статті показник степеня записано як m.
-- Вектор оцінок за ціллю за замовчуванням нормується за максимумом, щоб він був у шкалі [0; 1], співставній з рівнями безпеки й вектором задоволення.
-- Для альтернативи x5 з прикладу статті формула (19) дає μ = (0,3; 0,5) і Z* = 0,68, а не 0,92, як наведено в тексті статті. Застосунок і тести дотримуються формули.
+    npm install
+    npm run dev          # development
+    npm test             # tests for the computation core
+    npm run build        # production build
+    npm run build:single # single-file HTML build
