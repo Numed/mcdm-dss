@@ -1,3 +1,4 @@
+import { ChevronRight } from 'lucide-react'
 import { type ReactNode, useMemo } from 'react'
 import { FORMULAS, type FormulaId } from '@/app/formulas'
 import { ROBUSTNESS_RUNS, useRobustness } from '@/app/useAnalysis'
@@ -43,13 +44,19 @@ type BigStatProps = {
 const MATRIX_FORMULAS: FormulaId[] = ['relation', 'powerMean', 'weights', 'alternativesRelation', 'scores']
 
 const STAGES = [
-  'Дані',
-  'Функції належності',
-  'Агрегування за групами',
-  'Агрегування за цілями',
-  'Критерій безпеки',
-  'Вектор задоволення',
-  'Ранжування',
+  { title: 'Дані', text: 'Матриці значень критеріїв за групами для кожної альтернативи' },
+  { title: 'Функції належності', text: 'Нормування: x / max для ↑ max, min / x для ↓ min' },
+  { title: 'Агрегування за групами', text: 'Метод множення матриць дає ваги критеріїв і оцінку групи' },
+  { title: 'Агрегування за цілями', text: 'Той самий метод зважує групи й дає оцінку за ціллю' },
+  { title: 'Критерій безпеки', text: 'Рівень B1–B5 за найслабшою ціллю, ризиковані відсіюються' },
+  { title: 'Вектор задоволення', text: 'Потреби ОПР T і відхилення μ = min(m, n) для кожної цілі' },
+  { title: 'Ранжування', text: 'Інтегральна оцінка Z* = Σ zᵢ·tᵢ і вибір найкращої' },
+]
+
+const PHASES = [
+  { title: 'Підготовка даних', span: 2 },
+  { title: 'Метод множення матриць', span: 2 },
+  { title: 'Відбір і ранжування', span: 3 },
 ]
 
 function SlideFrame(props: SlideFrameProps) {
@@ -60,7 +67,9 @@ function SlideFrame(props: SlideFrameProps) {
         <h2 className="text-[40px] leading-[48px] font-semibold tracking-[-0.03em]">{props.title}</h2>
         {props.lead && <p className="max-w-4xl text-lg leading-7 text-muted-foreground">{props.lead}</p>}
       </header>
-      <div className="min-h-0 flex-1">{props.children}</div>
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="my-auto w-full pb-6">{props.children}</div>
+      </div>
     </div>
   )
 }
@@ -108,28 +117,51 @@ export function TaskSlide(props: SlideProps) {
       title="Обрати альтернативу, що задовольняє кілька цілей одночасно"
       lead="Кожна ціль оцінюється групами кількісних критеріїв. Потрібен не просто найсильніший варіант, а той, що найкраще відповідає потребам ОПР і не провальний за жодною ціллю."
     >
-      <div className="grid h-full grid-cols-[1fr_1.3fr] gap-8">
-        <div className="grid grid-cols-2 content-start gap-4">
+      <div className="flex flex-col gap-6">
+        <div className="grid grid-cols-4 gap-4">
           <BigStat label="Альтернативи" value={project.alternatives.length} />
           <BigStat label="Цілі" value={project.goals.length} />
           <BigStat label="Групи критеріїв" value={project.inputMode === 'criteria' ? groups : '—'} />
-          <BigStat label="Критерії" value={project.inputMode === 'criteria' ? criteria : 'готові оцінки'} />
+          <BigStat label="Критерії" value={project.inputMode === 'criteria' ? criteria : '—'} />
         </div>
-        <div className="flex flex-col gap-4 overflow-hidden rounded-xl border bg-card p-6">
+        <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(Math.max(project.goals.length, 1), 3)}, minmax(0, 1fr))` }}>
           {project.goals.map((goal, goalIndex) => (
-            <div key={goal.id} className="flex flex-col gap-2">
-              <div className="flex items-center gap-2 text-lg font-semibold">
-                <span className="rounded bg-primary/12 px-2 py-0.5 text-sm text-primary">G{goalIndex + 1}</span>
-                {meta.goalNames[goalIndex]}
+            <div
+              key={goal.id}
+              className="animate-slide-in flex flex-col gap-5 rounded-xl border bg-card p-6"
+              style={{ animationDelay: `${goalIndex * 90}ms`, animationFillMode: 'backwards', borderTopColor: goalColorVar(goalIndex), borderTopWidth: 3 }}
+            >
+              <div className="flex items-center gap-3">
+                <span className="rounded-md px-2 py-0.5 text-sm font-semibold num" style={{ color: goalColorVar(goalIndex), backgroundColor: `color-mix(in oklab, ${goalColorVar(goalIndex)} 14%, transparent)` }}>
+                  G{goalIndex + 1}
+                </span>
+                <span className="text-xl font-semibold first-letter:uppercase">{meta.goalNames[goalIndex]}</span>
               </div>
-              {project.inputMode === 'criteria' && (
-                <ul className="grid gap-1 pl-12 text-[15px] text-muted-foreground">
+              {project.inputMode === 'criteria' ? (
+                <div className="flex flex-col gap-4">
                   {goal.groups.map((group) => (
-                    <li key={group.id}>
-                      {group.name} · {group.criteria.length} {pluralUk(group.criteria.length, 'критерій', 'критерії', 'критеріїв')}
-                    </li>
+                    <div key={group.id} className="flex flex-col gap-2">
+                      <div className="flex items-baseline justify-between gap-3 text-[15px]">
+                        <span className="font-medium">{group.name}</span>
+                        <span className="shrink-0 text-sm text-muted-foreground num">
+                          {group.criteria.length} {pluralUk(group.criteria.length, 'критерій', 'критерії', 'критеріїв')}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {group.criteria.map((criterion) => (
+                          <span key={criterion.id} className="inline-flex items-center gap-1.5 rounded-md border bg-background/60 px-2 py-1 text-sm text-muted-foreground">
+                            <span className={criterion.direction === 'benefit' ? 'text-success' : 'text-warning'} aria-label={criterion.direction === 'benefit' ? 'max' : 'min'}>
+                              {criterion.direction === 'benefit' ? '↑' : '↓'}
+                            </span>
+                            {criterion.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                   ))}
-                </ul>
+                </div>
+              ) : (
+                <p className="text-[15px] text-muted-foreground">Оцінки за ціллю задано готовими значеннями.</p>
               )}
             </div>
           ))}
@@ -148,24 +180,43 @@ export function PipelineSlide(props: SlideProps) {
       title="Сім етапів від даних до рішення"
       lead="Ваги критеріїв обчислюються автоматично, без попарних порівнянь експертів, а ризиковані варіанти відсіюються до ранжування."
     >
-      <ol className="grid grid-cols-7 gap-4 pt-6">
-        {STAGES.map((stage, index) => {
-          const skipped = !criteriaMode && (index === 1 || index === 2)
-          return (
-            <li
-              key={stage}
-              className="animate-slide-in flex flex-col gap-4 rounded-xl border bg-card p-5"
-              style={{ animationDelay: `${index * 70}ms`, animationFillMode: 'backwards', opacity: skipped ? 0.45 : 1 }}
+      <div className="flex flex-col gap-5">
+        <ol className="grid grid-cols-7 gap-4">
+          {STAGES.map((stage, index) => {
+            const skipped = !criteriaMode && (index === 1 || index === 2)
+            return (
+              <li
+                key={stage.title}
+                className="animate-slide-in relative flex min-h-64 flex-col gap-4 rounded-xl border bg-card p-5"
+                style={{ animationDelay: `${index * 70}ms`, animationFillMode: 'backwards', opacity: skipped ? 0.45 : 1 }}
+              >
+                <span className="flex size-10 items-center justify-center rounded-lg bg-primary text-lg font-semibold text-primary-foreground num">
+                  {index + 1}
+                </span>
+                <span className="text-lg leading-6 font-semibold">{stage.title}</span>
+                <span className="text-[15px] leading-6 text-muted-foreground">
+                  {skipped ? 'Пропущено для готових оцінок' : stage.text}
+                </span>
+                {index < STAGES.length - 1 && (
+                  <ChevronRight className="absolute top-7 -right-[14px] z-10 size-5 rounded-full bg-background text-muted-foreground" aria-hidden />
+                )}
+              </li>
+            )
+          })}
+        </ol>
+        <div className="grid grid-cols-7 gap-4">
+          {PHASES.map((phase, index) => (
+            <div
+              key={phase.title}
+              className="animate-slide-in flex flex-col gap-2"
+              style={{ gridColumn: `span ${phase.span}`, animationDelay: `${500 + index * 90}ms`, animationFillMode: 'backwards' }}
             >
-              <span className="flex size-10 items-center justify-center rounded-lg bg-primary text-lg font-semibold text-primary-foreground num">
-                {index + 1}
-              </span>
-              <span className="text-lg leading-6 font-semibold">{stage}</span>
-              {skipped && <span className="text-sm text-muted-foreground">пропущено для готових оцінок</span>}
-            </li>
-          )
-        })}
-      </ol>
+              <div className="h-1 rounded-full bg-primary" style={{ opacity: 0.35 + index * 0.3 }} />
+              <span className="text-sm font-medium text-muted-foreground">{phase.title}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </SlideFrame>
   )
 }
@@ -178,25 +229,37 @@ export function MatrixSlide(props: SlideProps) {
       title="Метод множення матриць"
       lead="Зв’язки між критеріями A·Aᵀ і середнє порядку t дають ваги без участі експертів. Той самий метод агрегує групи в ціль."
     >
-      <div className="grid h-full grid-cols-[1.1fr_1fr] gap-8">
+      <div className="grid grid-cols-[1.1fr_1fr] gap-8">
         <div className="flex flex-col justify-center gap-3 rounded-xl border bg-card px-8 py-6 text-[22px]">
           {MATRIX_FORMULAS.map((id) => (
             <Formula key={id} math={FORMULAS[id].tex} number={FORMULAS[id].number} />
           ))}
         </div>
-        <div className="flex flex-col gap-5 overflow-hidden rounded-xl border bg-card p-6">
-          <div className="text-sm font-medium text-muted-foreground">Обчислені ваги груп</div>
+        <div className="flex flex-col justify-center gap-6 overflow-hidden rounded-xl border bg-card p-6">
+          <div className="text-sm font-medium text-muted-foreground">Обчислені ваги груп і критеріїв</div>
           {project.inputMode === 'criteria' ? (
             project.goals.map((goal, goalIndex) => {
               const aggregation = analysis.goals[goalIndex]
               const groups = goal.groups.filter((group) => group.criteria.length > 0)
               return (
-                <div key={goal.id} className="flex flex-col gap-2">
+                <div key={goal.id} className="flex flex-col gap-3">
                   <div className="text-[15px] font-semibold">{meta.goalLabels[goalIndex]}</div>
                   {groups.map((group, groupIndex) => (
-                    <div key={group.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 text-[15px]">
-                      <span className="truncate text-muted-foreground">{group.name}</span>
-                      <MiniBar value={aggregation?.groupWeights[groupIndex] ?? 0} color={goalColorVar(goalIndex)} width="w-40" />
+                    <div key={group.id} className="flex flex-col gap-1.5">
+                      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 text-[15px]">
+                        <span className="truncate font-medium">{group.name}</span>
+                        <MiniBar value={aggregation?.groupWeights[groupIndex] ?? 0} color={goalColorVar(goalIndex)} width="w-40" />
+                      </div>
+                      {group.criteria.map((criterion, criterionIndex) => (
+                        <div key={criterion.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 pl-4 text-sm text-muted-foreground">
+                          <span className="truncate">{criterion.name}</span>
+                          <MiniBar
+                            value={aggregation?.groups[groupIndex]?.criteriaWeights[criterionIndex] ?? 0}
+                            color={`color-mix(in oklab, ${goalColorVar(goalIndex)} 55%, transparent)`}
+                            width="w-40"
+                          />
+                        </div>
+                      ))}
                     </div>
                   ))}
                 </div>
@@ -221,7 +284,7 @@ export function SpaceSlide(props: SlideProps) {
       title="Простір цілей, безпека і вектор задоволення"
       lead="Рівень безпеки визначає найслабша ціль. Точка T — потреби ОПР: її можна перетягнути просто зараз."
     >
-      <div className="grid h-full grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] items-start gap-8">
+      <div className="grid grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] items-center gap-8">
         <div className="rounded-xl border bg-card p-5">
           {project.goals.length === 2 && (
             <GoalSpaceChart
@@ -279,7 +342,7 @@ export function RankingSlide(props: SlideProps) {
   const best = analysis.best
   return (
     <SlideFrame kicker="Етап 7" title="Ранжування за близькістю до потреб ОПР" lead="Z* = Σ zₗ·tₗ: компоненти T одночасно задають бажаний рівень і вагу кожної цілі.">
-      <div className="grid h-full grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] items-start gap-8">
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] items-center gap-8">
         {best ? (
           <div className="flex flex-col gap-5 rounded-xl border border-primary/40 bg-card p-8">
             <div className="text-sm font-medium tracking-[0.06em] text-primary uppercase">Найкраща альтернатива</div>
@@ -319,7 +382,7 @@ export function RobustnessSlide(props: SlideProps) {
       title="Що, якщо дані неточні?"
       lead={`Метод Монте-Карло: ${ROBUSTNESS_RUNS} сценаріїв, у кожному всі вхідні значення випадково змінено на ±10 %.`}
     >
-      <div className="grid h-full grid-cols-[22rem_minmax(0,1fr)] items-start gap-8">
+      <div className="grid grid-cols-[22rem_minmax(0,1fr)] items-center gap-8">
         <BigStat
           label="Переможець зберігається"
           value={<span className="text-[72px] leading-[76px]">{formatPercent(result.baselineWinRate)}</span>}
@@ -356,7 +419,7 @@ export function CompareSlide(props: SlideProps) {
       title="Чим метод відрізняється від TOPSIS і VIKOR"
       lead="TOPSIS і VIKOR максимізують показники. Запропонований метод винагороджує відповідність потребам ОПР, тому ранжування можуть розходитися."
     >
-      <div className="grid h-full grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] items-start gap-8">
+      <div className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] items-center gap-8">
         <div className="rounded-xl border bg-card p-6">
           <BumpChart
             ariaLabel="Ранги за трьома методами"
