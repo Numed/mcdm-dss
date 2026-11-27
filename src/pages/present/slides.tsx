@@ -181,7 +181,7 @@ export function PipelineSlide(props: SlideProps) {
       lead="Ваги критеріїв обчислюються автоматично, без попарних порівнянь експертів, а ризиковані варіанти відсіюються до ранжування."
     >
       <div className="flex flex-col gap-5">
-        <ol className="grid grid-cols-7 gap-4">
+        <ol className="grid grid-cols-7 gap-6">
           {STAGES.map((stage, index) => {
             const skipped = !criteriaMode && (index === 1 || index === 2)
             return (
@@ -198,13 +198,13 @@ export function PipelineSlide(props: SlideProps) {
                   {skipped ? 'Пропущено для готових оцінок' : stage.text}
                 </span>
                 {index < STAGES.length - 1 && (
-                  <ChevronRight className="absolute top-7 -right-[14px] z-10 size-5 rounded-full bg-background text-muted-foreground" aria-hidden />
+                  <ChevronRight className="absolute top-7 -right-5 size-4 text-muted-foreground" aria-hidden />
                 )}
               </li>
             )
           })}
         </ol>
-        <div className="grid grid-cols-7 gap-4">
+        <div className="grid grid-cols-7 gap-6">
           {PHASES.map((phase, index) => (
             <div
               key={phase.title}
